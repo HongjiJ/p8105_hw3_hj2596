@@ -127,20 +127,27 @@ janitor::clean_names() %>%
 mutate(weekend = ifelse(day %in% c("Saturday", "Sunday"),FALSE,TRUE)) %>%
 pivot_longer(
   activity_1:activity_1440,
-  names_to = "activities",
+  names_to = "minute",
+  names_prefix = "activity_",
   values_to = "activity_numbers"
-  )
+  ) %>%
+  mutate(minute = as.numeric(minute))
 ```
 
-
+Aggregate across minutes to create a total activity variable for each day and create a table. The order is changed to Monday to Sunday. No apparent trend is observed. The sum of activity numbers is very low on Saturdays of the 4th and 5th week.
 ```{r}
 accel_df %>%
+        #change the order to monday to friday
+        mutate(day = forcats::fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
         group_by(week, day) %>%
         summarize(activity_numbers_sum = sum(activity_numbers)) %>%
+        pivot_wider(names_from = "day",values_from = "activity_numbers_sum") %>%
         knitr::kable()
 ```
 
 ```{r}
-
+accel_df %>%
+        ggplot(aes(x=minute,y=activity_numbers,color=day)) +
+        geom_line(alpha = 0.5)
 ```
 

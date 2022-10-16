@@ -121,6 +121,26 @@ Import and clean the data. Create a weekday vs weekend variable
 #import the data
 accel_df = read_csv( "./accel_data.csv") %>%
 #clean names
-janitor::clean_names() 
+janitor::clean_names() %>%
+#Create a variable weekend where weekend is TRUE if day is weekend
+#And FALSE if day is not weekend
+mutate(weekend = ifelse(day %in% c("Saturday", "Sunday"),FALSE,TRUE)) %>%
+pivot_longer(
+  activity_1:activity_1440,
+  names_to = "activities",
+  values_to = "activity_numbers"
+  )
+```
+
+
+```{r}
+accel_df %>%
+        group_by(week, day) %>%
+        summarize(activity_numbers_sum = sum(activity_numbers)) %>%
+        knitr::kable()
+```
+
+```{r}
+
 ```
 

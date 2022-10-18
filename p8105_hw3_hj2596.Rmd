@@ -145,7 +145,6 @@ pivot_longer(
 ```
 Import and clean the data and create a weekday vs weekend variable. I can see that the dataset accel_df have `r nrow(accel_df)` observations and `r ncol(accel_df)` variables. The important variables are `r names(accel_df)`.
 
-Aggregate across minutes to create a total activity variable for each day and create a table. The order is changed to Monday to Sunday. No apparent trend is observed. The sum of activity numbers is very low on Saturdays of the 4th and 5th week.
 ```{r}
 accel_df %>%
         #change the order to monday to friday
@@ -154,6 +153,8 @@ accel_df %>%
         pivot_wider(names_from = "day",values_from = "activity_numbers_sum") %>%
         knitr::kable()
 ```
+Aggregate across minutes to create a total activity variable for each day and create a table. The order is changed to Monday to Sunday. I did not observe any obvious trend but the sum of activity numbers is very low on Saturdays of the 4th and 5th week.
+
 
 ```{r}
 accel_activity_plot = 
@@ -236,8 +237,7 @@ tmax_vs_tmin =
   y = "Maximum Temperature (Celsius)",
   title = "Comparing Max and Min Temperature")
   
-
-density_plot = 
+snow_density_plot = 
   noaa_df %>%
   drop_na(snow) %>%
   mutate(year=as.factor(year)) %>%
@@ -249,7 +249,7 @@ density_plot =
   x = "Snowfall(mm)",
   y = "Year",
   title = "Distribution of snowfall by year") 
-tmax_vs_tmin+density_plot 
+tmax_vs_tmin+snow_density_plot 
 ```
 From the two-panel plot, we can see that the max temperature and min temperature could be related. As the min temperature gets higher, the max temperature also gets higher. Also we see that the temperature counts mostly falls in the range between -30 to 30.
 

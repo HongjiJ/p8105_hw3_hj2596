@@ -156,6 +156,14 @@ data("ny_noaa")
 ```
 
 ```{r}
+summary(ny_noaa)
+```
+The dataset contains the id, date, prcp, snow, snwd, tmax and tmin. There are seven variables(columns) and 2595176 rows(observations). 
+prcp has 145838 NA values.
+snow has 381221 NA values.
+snwd has 591786 NA values.
+
+```{r}
 noaa_df = ny_noaa %>%
   janitor::clean_names() %>% 
   separate(col = date, into = c('year','month','day'), sep = "-" , convert = TRUE) %>%
@@ -169,16 +177,41 @@ noaa_df = ny_noaa %>%
 
 ```
 
-```{r}
-summary(noaa_df)
-```
-
 
 ```{r}
 sort(table(noaa_df$snow),decreasing=TRUE)[1]
 ```
+For snowfall, the most common observed value is 0.
 
 ```{r}
+noaa_df %>%
+  mutate(month = month.name[month]) %>%
+  filter(month %in% c("January","July")) %>% 
+  group_by(id,year,month) %>%
+  summarize(tmax_mean = mean(tmax),na.rm=TRUE) %>%
+  ggplot(aes(x=year,y=tmax_mean, groups=id, color = tmax_mean))+
+  geom_line(alpha = 0.5)+
+  facet_grid(.~month)
+```
 
+Because here I am making a scatterplot with lots of data, there’s a limit to how much you can avoid overplotting using alpha levels. Using 'geom_hex()' is a way to avoid that.
+```{r}
+tmax_vs_tmin = 
+  noaa_df %>%
+  drop_na(tmin, tmax) %>%
+  drop_na() %>%
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_hex()
+```
+
+```{r}
+density_plot = 
+  noaa_df %>%
+  drop_na(snow) %>%
+  mutate(year=as.factor(year)) %>%
+  filter(snow>0 & snow<100) %>% 
+  ggplot(aes(x = snow,y = year))+
+  geom_density_ridges()
+density_plot 
 ```
 

@@ -115,30 +115,40 @@ instacart %>%
   knitr::kable(digits = 2)
 ```
 
-Import and clean the data. Create a weekday vs weekend variable 
+
 ### Problem 2
 ```{r}
 #import the data
-accel_df = read_csv( "./accel_data.csv") %>%
+accel_df = read_csv( "./accel_data.csv")
+
 #clean names
+accel_df = 
+accel_df%>%
 janitor::clean_names() %>%
-#Create a variable weekend where weekend is TRUE if day is weekend
-#And FALSE if day is not weekend
-mutate(weekend = ifelse(day %in% c("Saturday", "Sunday"),FALSE,TRUE)) %>%
+
+#Use case when to create the variable that indicates weekend vs weekday
+mutate(
+  weekdays = case_when(
+  day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday") ~ "Weekday",
+  day %in% c("Saturday","Sunday") ~ "Weekend",
+  TRUE ~ "")
+  )%>%
 pivot_longer(
   activity_1:activity_1440,
   names_to = "minute",
   names_prefix = "activity_",
   values_to = "activity_numbers"
   ) %>%
-  mutate(minute = as.numeric(minute))
+  mutate(minute = as.numeric(minute)) %>%
+  mutate(day = forcats::fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")))
+
 ```
+Import and clean the data and create a weekday vs weekend variable. I can see that the dataset accel_df have `r nrow(accel_df)` observations and `r ncol(accel_df)` variables. The important variables are `r names(accel_df)`.
 
 Aggregate across minutes to create a total activity variable for each day and create a table. The order is changed to Monday to Sunday. No apparent trend is observed. The sum of activity numbers is very low on Saturdays of the 4th and 5th week.
 ```{r}
 accel_df %>%
         #change the order to monday to friday
-        mutate(day = forcats::fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
         group_by(week, day) %>%
         summarize(activity_numbers_sum = sum(activity_numbers)) %>%
         pivot_wider(names_from = "day",values_from = "activity_numbers_sum") %>%
@@ -146,10 +156,21 @@ accel_df %>%
 ```
 
 ```{r}
-accel_df %>%
+accel_activity_plot = 
+        accel_df %>%
         ggplot(aes(x=minute,y=activity_numbers,color=day)) +
-        geom_line(alpha = 0.5)
+        geom_line(alpha = 0.5)+
+        labs(x = "Time", 
+             y = "Activity Numbers", 
+             title = "The Accivity over time for each day",
+             caption = "Data from accel.csv")+
+        scale_x_continuous(
+                breaks = c(0, 360, 720, 1080, 1440),
+                labels = c("0:00", "6:00", "12:00", "18:00", "24:00"))
 ```
+We can see that within a day, the activity is low in the time between 0:00 to 6:00 and higher later. In the night in the time between 18:00 to 24:00 the activity is especially high.
+
+### Problem 3
 ```{r}
 library(p8105.datasets)
 data("ny_noaa")
@@ -213,7 +234,7 @@ tmax_vs_tmin =
   labs(
   x = "Minimum Temperature (Celsius)", 
   y = "Maximum Temperature (Celsius)",
-  title = "Comparing Maximum with Minimum Temperature")
+  title = "Comparing Max and Min Temperature")
   
 
 density_plot = 
